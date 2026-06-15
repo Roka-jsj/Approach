@@ -21,7 +21,7 @@ If service `target_class` is empty, the service rejects the request and the robo
 2. Use only detections that already arrive in the configured target frame, `base_link` by default.
 3. If the object distance is already `0.30m` or less, stop and finish.
 4. Rotate toward the object using at most `10deg` per rotation step.
-5. Stop for `1s` after each rotation and wait for a fresh detection.
+5. Stop for `0.2s` after each rotation and wait for a fresh detection.
 6. When the object is centered within `y_tolerance`, drive forward with small angular correction from the latest `y` error.
 7. If the target disappears while driving, stop and wait for a fresh detection.
 8. If the target drifts too far while driving, stop forward motion and realign.

@@ -1,0 +1,10 @@
+build/
+install/
+log/
+**/build/
+**/install/
+**/log/
+**/.git/
+**/.pytest_cache/
+**/__pycache__/
+**/*.pyc

@@ -11,14 +11,14 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
+    python3-ament-package \
     python3-colcon-common-extensions \
     ros-${ROS_DISTRO}-ament-cmake \
     ros-${ROS_DISTRO}-geometry-msgs \
-    ros-${ROS_DISTRO}-nav2-msgs \
     ros-${ROS_DISTRO}-rclpy \
     ros-${ROS_DISTRO}-rosidl-default-generators \
+    ros-${ROS_DISTRO}-rosidl-default-runtime \
     ros-${ROS_DISTRO}-std-msgs \
-    ros-${ROS_DISTRO}-tf2-ros \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /home/nvidia/ros2_ws/src/approach
@@ -29,7 +29,7 @@ COPY docker/ros_entrypoint.sh /ros_entrypoint.sh
 RUN test -f /home/nvidia/ros2_ws/src/approach/yolo_msgs/package.xml     || (echo "ERROR: yolo_msgs/package.xml not found. Copy yolo_msgs into the Docker build context at ~/approach/yolo_msgs." && exit 1)
 
 RUN chmod +x /ros_entrypoint.sh \
-    && chmod +x /home/nvidia/ros2_ws/src/approach/stella_approach/scripts/approach_goal_service.py \
+    && chmod +x /home/nvidia/ros2_ws/src/approach/stella_approach/scripts/approach_controller.py \
     && source /opt/ros/${ROS_DISTRO}/setup.bash \
     && cd /home/nvidia/ros2_ws \
     && colcon build \
@@ -38,19 +38,12 @@ RUN chmod +x /ros_entrypoint.sh \
         --build-base /home/nvidia/ros2_ws/build \
         --install-base /home/nvidia/ros2_ws/install \
         --symlink-install \
-    && mkdir -p /home/nvidia/ros2_ws/install/stella_approach/share/stella_approach/launch \
-    && if [ ! -f /home/nvidia/ros2_ws/install/stella_approach/share/stella_approach/launch/approach_goal.launch.py ]; then \
-         cp /home/nvidia/ros2_ws/src/approach/stella_approach/launch/approach_goal.launch.py /home/nvidia/ros2_ws/install/stella_approach/share/stella_approach/launch/approach_goal.launch.py; \
-       fi \
-    && mkdir -p /home/nvidia/ros2_ws/install/stella_approach/lib/stella_approach \
-    && if [ ! -x /home/nvidia/ros2_ws/install/stella_approach/lib/stella_approach/approach_goal_service.py ]; then \
-         cp /home/nvidia/ros2_ws/src/approach/stella_approach/scripts/approach_goal_service.py /home/nvidia/ros2_ws/install/stella_approach/lib/stella_approach/approach_goal_service.py; \
-         chmod +x /home/nvidia/ros2_ws/install/stella_approach/lib/stella_approach/approach_goal_service.py; \
-       fi \
     && test -f /home/nvidia/ros2_ws/install/stella_approach/share/stella_approach/launch/approach_goal.launch.py \
-    && test -x /home/nvidia/ros2_ws/install/stella_approach/lib/stella_approach/approach_goal_service.py \
+    && test -x /home/nvidia/ros2_ws/install/stella_approach/lib/stella_approach/approach_controller.py \
     && source /home/nvidia/ros2_ws/install/setup.bash \
-    && python3 -c "from yolo_msgs.msg import DetectionArray; from yolo_msgs.srv import GetTargetPosition; from stella_approach.srv import ApproachTarget"
+    && printf '\nsource /opt/ros/%s/setup.bash\nsource /home/nvidia/ros2_ws/install/setup.bash\n' "${ROS_DISTRO}" >> /root/.bashrc \
+    && python3 -m py_compile /home/nvidia/ros2_ws/src/approach/stella_approach/scripts/approach_controller.py \
+    && python3 -c "from yolo_msgs.msg import DetectionArray; from stella_approach.srv import ApproachObject"
 
 WORKDIR /home/nvidia/ros2_ws
 

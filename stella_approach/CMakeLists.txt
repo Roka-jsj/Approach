@@ -11,12 +11,12 @@ install(DIRECTORY launch
 )
 
 install(PROGRAMS
-  scripts/approach_goal_service.py
+  scripts/approach_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/ApproachTarget.srv"
+  "srv/ApproachObject.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
